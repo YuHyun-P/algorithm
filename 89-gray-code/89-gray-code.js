@@ -7,18 +7,15 @@ var grayCode = function(n) {
   const visited = Array.from({length: Math.pow(2, n)}).fill(false);
   const path = [];
   
-  const dfs = (node, level) => {
-    if (level === Math.pow(2, n)) {
-      return;
-    }
-    
+  const dfs = (node) => {
     if (visited[node]) {
       return;
     }
     
     path.push(node);
     visited[node] = true;
-    toggle.forEach((toggleNum) => dfs(node ^ toggleNum, level + 1));
+    
+    toggle.forEach((toggleNum) => dfs(node ^ toggleNum));
   };
   
   dfs(0, 0);
