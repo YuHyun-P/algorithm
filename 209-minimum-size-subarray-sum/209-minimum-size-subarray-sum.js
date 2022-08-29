@@ -7,7 +7,7 @@ var minSubArrayLen = function(target, nums) {
   const prefixSum = [0];
   nums.forEach((num, index) => prefixSum.push(num + prefixSum[index]));
   
-  const lengths = new Set();
+  let minLength = Infinity;
   
   let left = 0;
   let right = 1;
@@ -16,10 +16,10 @@ var minSubArrayLen = function(target, nums) {
     if (sum < target) {
       right++;
     } else {
-      lengths.add(right - left);
+      minLength = Math.min(minLength, (right - left));
       left++;
     }
   }
   
-  return lengths.size > 0 ? Math.min(...lengths) : 0;
+  return minLength === Infinity ? 0 : minLength;
 };
