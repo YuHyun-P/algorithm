@@ -8,16 +8,15 @@ var checkSubarraySum = function(nums, k) {
   if (nums.length < 2) return false;
   if (k === 1) return true;
   
-  const prefixSum = [0];
-  nums.forEach((num, index) => prefixSum.push(num + prefixSum[index]));
+  const prefixSumMods = [0];
+  nums.forEach((num, index) => prefixSumMods.push((num + prefixSumMods[index]) % k));
   
-  const mods = prefixSum.map((sum) => sum % k);
   const indices = {};
-  
+
   
   let found = false;
-  for (let right = 0; right < mods.length; right++) {
-    const mod = mods[right];
+  for (let right = 0; right < prefixSumMods.length; right++) {
+    const mod = prefixSumMods[right];
     
     if (indices[mod] !== undefined) {
       const left = indices[mod];
