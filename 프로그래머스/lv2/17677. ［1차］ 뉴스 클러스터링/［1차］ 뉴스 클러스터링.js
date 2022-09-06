@@ -1,43 +1,32 @@
 function solution(str1, str2) {
-    const rowStr1 = str1.toLowerCase().split(""),
-          rowStr2 = str2.toLowerCase().split("");
+    const str1Arr = str1.toLowerCase().split(""),
+          str2Arr = str2.toLowerCase().split("");
     
-    const str1Set = new Set(),
-          str2Set = new Set();
-    
-    const map = new Map();
-    for (let i = 0; i < rowStr1.length - 1; i++) {
-        const element = rowStr1[i] + rowStr1[i + 1];
-        if (!/[a-z]{2}/g.test(element)) continue;
-        
-        if (str1Set.has(element)) {
-            const index = map.get(element);
-            map.set(element, index + 1);
-            str1Set.add(`${element}_${index}`);
-        } else {
-            str1Set.add(element);
-            map.set(element, 0);
-        }
+    const createMultiSet = (arr) => {
+        const set = [];
+        arr.forEach((second, index) => {
+            if (index === 0) return;
+            
+            const element = arr[index - 1] + second;
+            if (/[a-z]{2}/g.test(element)) set.push(element);
+        });
+        return set;
     }
     
-    map.clear();
-    for (let i = 0; i < rowStr2.length - 1; i++) {
-        const element = rowStr2[i] + rowStr2[i + 1];
-        if (!/[a-z]{2}/g.test(element)) continue;
-        
-        if (str2Set.has(element)) {
-            const index = map.get(element);
-            map.set(element, index + 1);
-            str2Set.add(`${element}_${index}`);
-        } else {
-            str2Set.add(element);
-            map.set(element, 0);
+    const A = createMultiSet(str1Arr),
+          B = createMultiSet(str2Arr);
+    
+    const AdiffB = [...A];
+    const intersection = [];
+    B.forEach((element) => {
+        if (AdiffB.includes(element)) {
+            const index = AdiffB.indexOf(element);
+            AdiffB.splice(index, 1);
+            intersection.push(element);
         }
-    }
+    });
     
-    const intersection = [...str1Set].filter((element) => str2Set.has(element)),
-          union = new Set([...str1Set, ...str2Set]);
+    const jaccardCoefficient = intersection.length / (AdiffB.length + B.length);
     
-    const answer = union.size === 0 ? 1 : intersection.length / union.size;
-    return Math.floor(answer * 65536);
+    return Number.isNaN(jaccardCoefficient) ? 65536 : Math.floor(jaccardCoefficient * 65536);
 }
