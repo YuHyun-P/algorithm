@@ -47,3 +47,5 @@ function solution(name) {
 ## "BBBBAAAAAAAB" 입력 예시
 ![프로그래머스 조이스틱](https://user-images.githubusercontent.com/96400112/188699385-a1d545c0-752e-4f9e-bb75-c8d4017a5ac2.jpeg)
 
+## 참고
+[[프로그래머스] 조이스틱 자바](https://velog.io/@jeeseob5761/%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%A8%B8%EC%8A%A4-%EC%A1%B0%EC%9D%B4%EC%8A%A4%ED%8B%B1)
