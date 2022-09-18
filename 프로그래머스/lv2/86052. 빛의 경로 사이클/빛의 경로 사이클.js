@@ -1,89 +1,67 @@
-const DIRECTION = {
-  TOP: [-1, 0],
-  LEFT: [0, -1],
-  RIGHT: [0, 1],
-  BOTTOM: [1, 0],
-};
-
-// nodeType: { inDirection: outDriection, ... }
-const OUT_DIRECTION = {
-  S: {
-    TOP: "BOTTOM",
-    LEFT: "RIGHT",
-    RIGHT: "LEFT",
-    BOTTOM: "TOP",
-  },
-  L: {
-    TOP: "RIGHT",
-    LEFT: "TOP",
-    RIGHT: "BOTTOM",
-    BOTTOM: "LEFT",
-  },
-  R: {
-    TOP: "LEFT",
-    LEFT: "BOTTOM",
-    RIGHT: "TOP",
-    BOTTOM: "RIGHT",
-  },
-};
-
-const convertDirection = (direction) => {
-    switch (direction) {
-        case "TOP": return "BOTTOM";
-        case "LEFT": return "RIGHT";
-        case "RIGHT": return "LEFT";
-        case "BOTTOM": return "TOP";
-    }
-}
-
 function solution(grid) {
-    // m * n grid
-    const [m, n] = [grid.length, grid[0].length];
-    const visited = new Set();
-    const answer = [];
+    const DIRECTION = 4;
+    // right down left up
+    const dr = [0, 1, 0, -1];
+    const dc = [1, 0, -1, 0];
     
-    const getNext = (i, j, outDirection) => {
-        const nextI = (i + DIRECTION[outDirection][0]) % m;
-        const nextJ = (j + DIRECTION[outDirection][1]) % n;
-        return [nextI < 0 ? m - 1 : nextI, nextJ < 0 ? n - 1 : nextJ];
-    };
+    const N = grid.length;
+    const M = grid[0].length;
+    const visited = Array.from(
+        Array(N), 
+        () => Array.from(
+            Array(M),
+            () => Array(DIRECTION).fill(false)
+        )
+    );
     
-    const dfs = (start, inDirection) => {
-        const [i, j] = start;
-        const nodeType = grid[i][j];
-        const outDirection = OUT_DIRECTION[nodeType][inDirection];
+    const dfs = (r, c, direction) => {
+        const stack = [[r, c, direction]];
+        let count = 0;
         
-        const queue = [[i, j, outDirection]];
-        let length = 0;
+        while (stack.length > 0) {
+            const [curR, curC, curDirection] = stack.pop();
+            const cell = grid[curR][curC];
+            count++;
+            
+            let nextR, nextC, nextDirection;
+            switch (cell) {
+                case "S":
+                    nextDirection = curDirection;
+                    nextR = (curR + dr[nextDirection] + N) % N;
+                    nextC = (curC + dc[nextDirection] + M) % M;
+                    break;
+                case "L":
+                    nextDirection = (curDirection + 1) % DIRECTION;
+                    nextR = (curR + dr[nextDirection] + N) % N;
+                    nextC = (curC + dc[nextDirection] + M) % M;
+                    break;
+                case "R":
+                    nextDirection = (curDirection - 1 + DIRECTION) % DIRECTION
+                    nextR = (curR + dr[nextDirection] + N) % N;
+                    nextC = (curC + dc[nextDirection] + M) % M;
+                    break;
+            }
+            
+            if (visited[nextR][nextC][nextDirection]) break;
+            
+            stack.push([nextR, nextC, nextDirection]);
+            visited[nextR][nextC][nextDirection] = true;
+        }
         
-        while (queue.length !== 0) {
-            const [i, j, outDirection] = queue.shift();
-            const edge = [i, j, outDirection].join("-"); // 0-0-TOP
-            if (visited.has(edge)) {
-                if (length > 0) {
-                    answer.push(length);
-                }
-                break
-            };
-            
-            visited.add(edge);
-            length++;
-            
-            const [nextI, nextJ] = getNext(i, j, outDirection);
-            const nextNodeType =  grid[nextI][nextJ];
-            const nextOutDirection = OUT_DIRECTION[nextNodeType][convertDirection(outDirection)];
-            queue.push([nextI, nextJ, nextOutDirection]);
-        }
-    };
-    
-    
-    for (let i=0; i<m; i++) {
-        for (let j=0; j<n; j++) {
-            Object.keys(DIRECTION).forEach((inDirection) => {
-                dfs([i, j], inDirection, visited);
-            })
-        }
+        return count;
     }
     
-    return answer.sort((a, b) => a - b);
+    const lengths = [];
+    for (let r = 0; r < N; r++) {
+        for (let c = 0; c < M; c++) {
+            for (let direction = 0; direction < DIRECTION; direction++) {
+                if (visited[r][c][direction]) continue;
+                
+                visited[r][c][direction] = true;
+                const length = dfs(r, c, direction);
+                lengths.push(length);
+            }
+        }
+    }
+    return lengths.sort((a, b) => a - b)
 }
