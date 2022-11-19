@@ -6,23 +6,21 @@ const N = Number(input[0]);
 const userArray = [];
 for (let line = 1; line <= N; line++) {
   const [ageStr, name] = input[line].trim().split(" ");
-  userArray.push([Number(ageStr), name, line]);
+  userArray.push([Number(ageStr), name]);
 }
 
 userArray.sort(sortFn);
 console.log(
   userArray
-    .map(([age, name]) => `${age} ${name}`)
+    .map((user) => user.join(" "))
     .reduce((acc, cur) => (acc += `${cur}\n`), "")
     .trim()
 );
 
 function sortFn(userA, userB) {
-  const [ageA, _A, lineA] = userA;
-  const [ageB, _B, lineB] = userB;
+  const [ageA] = userA;
+  const [ageB] = userB;
 
   const dAge = ageA - ageB;
-  const dLine = lineA - lineB;
-
-  return dAge !== 0 ? dAge : dLine;
+  return dAge;
 }
