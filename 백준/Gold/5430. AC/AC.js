@@ -5,7 +5,8 @@ const input = fs.readFileSync(path).toString().trim().split("\n");
 const totalTestCase = Number(input.shift().trim());
 const createAC = (initialArray) => {
   const array = [...initialArray];
-  let head = 0;
+  let left = 0;
+  let right = initialArray.length;
   let reversed = false;
 
   const R = () => {
@@ -17,17 +18,19 @@ const createAC = (initialArray) => {
     }
 
     if (reversed) {
-      return array.pop();
+      right -= 1;
+      return;
     }
-    const item = array[head];
-    head += 1;
-    return item;
+
+    left += 1;
   };
   const isEmpty = () => {
-    return array.length - head === 0;
+    return left === right;
   };
   const getArray = () => {
-    return reversed ? array.splice(head).reverse() : array.splice(head);
+    return reversed
+      ? array.slice(left, right).reverse()
+      : array.slice(left, right);
   };
 
   return { R, D, getArray };
@@ -39,16 +42,10 @@ for (let testCase = 0; testCase < totalTestCase; testCase++) {
     .splice(0, 3)
     .map((string) => string.trim());
 
-  const AC = createAC(
-    arrayString
-      .slice(1, arrayString.length - 1)
-      .split(",")
-      .filter((num) => num !== "")
-      .map(Number)
-  );
+  const AC = createAC(JSON.parse(arrayString));
   try {
     commands.split("").forEach((command) => AC[command]());
-    answers[testCase] = `[${AC.getArray().toString()}]`;
+    answers[testCase] = JSON.stringify(AC.getArray());
   } catch (error) {
     answers[testCase] = "error";
   }
