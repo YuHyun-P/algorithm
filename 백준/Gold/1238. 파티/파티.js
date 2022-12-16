@@ -3,17 +3,24 @@ const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
 const [N, M, party] = input.shift().trim().split(" ").map(Number);
-const graph = Array.from(Array(N + 1), (_, rowIndex) =>
-  Array(N + 1)
-    .fill(Infinity)
-    .map((col, colIndex) => (rowIndex === colIndex ? 0 : col))
-);
+
+const createGraph = (n) => {
+  return Array.from(Array(n + 1), (_, rowIndex) =>
+    Array(n + 1)
+      .fill(Infinity)
+      .map((col, colIndex) => (rowIndex === colIndex ? 0 : col))
+  );
+};
+
+const graph = createGraph(N);
+const backwardGraph = createGraph(N);
 input.map((line) => {
   const [townA, townB, distance] = line.trim().split(" ").map(Number);
   graph[townA][townB] = distance;
+  backwardGraph[townB][townA] = distance;
 });
 
-const dijkstra = (start) => {
+const dijkstra = (start, graph) => {
   const distance = [...graph[start]];
   const visited = Array(N + 1).fill(false);
   visited[0] = visited[start] = true;
@@ -51,14 +58,13 @@ const dijkstra = (start) => {
   return distance;
 };
 
-const total = dijkstra(party);
-for (let town = 1; town < N + 1; town++) {
-  if (town === party) {
-    continue;
-  }
+const forwardDistance = dijkstra(party, graph);
+const backwardDistance = dijkstra(party, backwardGraph);
 
-  const distance = dijkstra(town);
-  total[town] += distance[party];
-}
-
-console.log(Math.max(...total.slice(1)));
+console.log(
+  Math.max(
+    ...forwardDistance
+      .map((distance, town) => distance + backwardDistance[town])
+      .slice(1)
+  )
+);
