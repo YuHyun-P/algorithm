@@ -1,12 +1,7 @@
 const fs = require("fs");
 const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 
-const parentheses = fs
-  .readFileSync(path)
-  .toString()
-  .trim()
-  .replace(/\(\)/g, "L")
-  .split("");
+const parentheses = fs.readFileSync(path).toString().trim();
 let leftCount = 0;
 let stickCount = 0;
 let cursor = 0;
@@ -14,10 +9,13 @@ let cursor = 0;
 while (cursor < parentheses.length) {
   const cur = parentheses[cursor];
   switch (cur) {
-    case "L":
-      stickCount += leftCount;
-      break;
     case "(":
+      if (parentheses[cursor + 1] === ")") {
+        stickCount += leftCount;
+        cursor += 1;
+        break;
+      }
+
       leftCount += 1;
       break;
     case ")":
