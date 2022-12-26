@@ -1,19 +1,23 @@
 const fs = require("fs");
-const input = fs.readFileSync("/dev/stdin").toString().trim();
+const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
+const input = fs.readFileSync(path).toString().trim();
 
-const N = Number(input);
-const answer = [];
-recursiveMove(N, 1, 3, 2);
-console.log(answer.length);
-console.log(answer.map((path) => path.join(" ")).join("\n"));
+function solution(n) {
+  const order = [];
+  const move = (n, source, target, rest) => {
+    if (n <= 1) {
+      order.push([source, target].join(" "));
+      return;
+    }
 
-function recursiveMove(n, source, target, temp) {
-  if (n === 0) return;
-  recursiveMove(n - 1, source, temp, target);
-  move(source, target);
-  recursiveMove(n - 1, temp, target, source);
+    move(n - 1, source, rest, target);
+    order.push([source, target].join(" "));
+    move(n - 1, rest, target, source);
+  };
+  move(n, 1, 3, 2);
+  return order;
 }
 
-function move(source, target) {
-  answer.push([source, target]);
-}
+const order = solution(Number(input));
+console.log(order.length);
+console.log(order.join("\n"));
