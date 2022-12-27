@@ -5,10 +5,8 @@ const input = fs.readFileSync(path).toString().trim().split(" ");
 function solution(N) {
   let arrangementCount = 0;
   const visitedCol = Array(N).fill(false);
-  const intercept = {
-    negativeGradient: new Set(),
-    positiveGradient: new Set(),
-  };
+  const negativeGradientIntercept = Array(N * 2 - 1).fill(false);
+  const positiveGradientIntercept = Array(N * 2 - 1).fill(false);
 
   const backtracking = (queenCount) => {
     if (queenCount === 0) {
@@ -21,21 +19,21 @@ function solution(N) {
       const col = index + 1;
       if (
         selected ||
-        intercept.negativeGradient.has(col + row) ||
-        intercept.positiveGradient.has(col - row)
+        negativeGradientIntercept[col + row] ||
+        positiveGradientIntercept[col - row + N]
       ) {
         return;
       }
 
       visitedCol[index] = true;
-      intercept.negativeGradient.add(col + row);
-      intercept.positiveGradient.add(col - row);
+      negativeGradientIntercept[col + row] = true;
+      positiveGradientIntercept[col - row + N] = true;
 
       backtracking(queenCount - 1);
 
       visitedCol[index] = false;
-      intercept.negativeGradient.delete(col + row);
-      intercept.positiveGradient.delete(col - row);
+      negativeGradientIntercept[col + row] = false;
+      positiveGradientIntercept[col - row + N] = false;
     });
   };
 
