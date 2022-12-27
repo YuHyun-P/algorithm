@@ -3,23 +3,32 @@ const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split(" ");
 
 function solution(N, M) {
-  const getPermutations = (array, selectCount) => {
-    if (selectCount === 1) {
-      return array.map((num) => [num]);
+  const permutations = [];
+  const visited = Array(N).fill(false);
+
+  const backtracking = (permutation, level) => {
+    if (level === 0) {
+      permutations.push([...permutation]);
+      return;
     }
 
-    return array.flatMap((selected, _, arr) =>
-      getPermutations(
-        arr.filter((num) => num !== selected),
-        selectCount - 1
-      ).map((permutation) => [selected, ...permutation])
-    );
-  };
+    visited.forEach((selected, index) => {
+      if (selected) {
+        return;
+      }
 
-  return getPermutations(
-    Array.from(Array(N), (_, index) => index + 1),
-    M
-  );
+      visited[index] = true;
+      permutation.push(index + 1);
+
+      backtracking(permutation, level - 1);
+
+      permutation.pop();
+      visited[index] = false;
+    });
+  };
+  backtracking([], M);
+
+  return permutations;
 }
 
 const [N, M] = input.map(Number);
