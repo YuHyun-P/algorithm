@@ -1,14 +1,20 @@
-let fs = require("fs");
-let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+const fs = require("fs");
+const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
+const input = fs.readFileSync(path).toString().trim().split("\n");
 
-const [testCase, ...questionList] = input.map(Number);
-const countDp = [0, 1, 2, 4];
-const fillCountDp = () => {
-  const N_LIMIT = 11;
-  for (let n = 4; n < N_LIMIT; n++) {
-    countDp.push(countDp[n - 1] + countDp[n - 2] + countDp[n - 3]);
+function solution(arr) {
+  const LIMIT = 11;
+  const dp = Array(LIMIT + 1).fill(0);
+  dp[1] = 1;
+  dp[2] = 2;
+  dp[3] = 4;
+
+  for (let index = 4; index < dp.length; index++) {
+    dp[index] = dp[index - 1] + dp[index - 2] + dp[index - 3];
   }
-};
-fillCountDp();
+  return arr.map((num) => dp[num]);
+}
 
-console.log(questionList.map((question) => countDp[question]).join("\n"));
+input.shift();
+const arr = input.map((row) => Number(row.trim()));
+console.log(solution(arr).join("\n"));
