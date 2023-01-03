@@ -2,53 +2,48 @@ const fs = require("fs");
 const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
-const totalTestCase = Number(input.shift().trim());
-const createAC = (initialArray) => {
-  const array = [...initialArray];
-  let left = 0;
-  let right = initialArray.length;
-  let reversed = false;
+function solution(testCase) {
+  const test = ([command, sequence]) => {
+    let head = 0;
+    let tail = sequence.length - 1;
+    let isReversed = false;
 
-  const R = () => {
-    reversed = !reversed;
-  };
-  const D = () => {
-    if (isEmpty()) {
-      throw new Error("Empty array");
+    for (const char of command) {
+      switch (char) {
+        case "R":
+          isReversed = !isReversed;
+          break;
+        case "D":
+          if (head > tail) {
+            return "error";
+          }
+          if (!isReversed) {
+            head += 1;
+          } else {
+            tail -= 1;
+          }
+          break;
+      }
     }
 
-    if (reversed) {
-      right -= 1;
-      return;
-    }
-
-    left += 1;
-  };
-  const isEmpty = () => {
-    return left === right;
-  };
-  const getArray = () => {
-    return reversed
-      ? array.slice(left, right).reverse()
-      : array.slice(left, right);
+    return JSON.stringify(
+      isReversed
+        ? sequence.slice(head, tail + 1).reverse()
+        : sequence.slice(head, tail + 1)
+    );
   };
 
-  return { R, D, getArray };
-};
-
-const answers = Array(totalTestCase).fill("");
-for (let testCase = 0; testCase < totalTestCase; testCase++) {
-  const [commands, n, arrayString] = input
-    .splice(0, 3)
-    .map((string) => string.trim());
-
-  const AC = createAC(JSON.parse(arrayString));
-  try {
-    commands.split("").forEach((command) => AC[command]());
-    answers[testCase] = JSON.stringify(AC.getArray());
-  } catch (error) {
-    answers[testCase] = "error";
-  }
+  return testCase.map(test);
 }
 
-console.log(answers.join("\n"));
+const T = Number(input.shift());
+const testCase = [];
+for (let index = 0; index < T; index++) {
+  const [p, n, sequence] = [
+    input[index * 3],
+    input[index * 3 + 1],
+    input[index * 3 + 2],
+  ];
+  testCase.push([p.trim(), JSON.parse(sequence)]);
+}
+console.log(solution(testCase).join("\n"));
