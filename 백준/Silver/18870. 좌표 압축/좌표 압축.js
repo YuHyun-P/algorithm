@@ -1,11 +1,32 @@
 const fs = require("fs");
-const input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
+const input = fs.readFileSync(path).toString().trim().split("\n");
 
-const xArray = input[1].trim().split(" ").map(Number);
+function solution(coord) {
+  const sorted = [...new Set(coord)].sort((a, b) => a - b);
+  const getLowerIndex = (sequence, k) => {
+    let left = 0;
+    let right = sequence.length;
+    let mid = Math.floor((left + right) / 2);
+    while (left < right) {
+      const diff = Math.sign(sequence[mid] - k);
+      switch (diff) {
+        case -1:
+          left = mid + 1;
+          break;
+        case 0:
+        case 1:
+          right = mid;
+          break;
+      }
+      mid = Math.floor((left + right) / 2);
+    }
 
-const xArrayWithoutDuplicates = [...new Set(xArray)];
-xArrayWithoutDuplicates.sort((a, b) => a - b);
+    return left;
+  };
+  return coord.map((num) => getLowerIndex(sorted, num));
+}
 
-const orderMap = new Map(xArrayWithoutDuplicates.map((x, order) => [x, order]));
-
-console.log(xArray.map((x) => orderMap.get(x)).join(" "));
+input.shift();
+const coord = input[0].trim().split(" ").map(Number);
+console.log(solution(coord).join(" "));
