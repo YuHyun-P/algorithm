@@ -18,7 +18,7 @@ function solution(N, edge) {
       const cur = queue[head++];
 
       for (const next of tree[cur]) {
-        if (next === cur || parent[cur] === next) {
+        if (parent[cur] === next) {
           continue;
         }
 
