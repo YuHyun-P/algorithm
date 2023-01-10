@@ -1,151 +1,140 @@
-class Heap {
-  constructor(compareFn) {
+const fs = require("fs");
+const path = process.platform === "linux" ? "/dev/stdin" : "./예제.txt";
+const input = fs.readFileSync(path).toString().trim().split("\n");
+
+class PriorityQueue {
+  constructor(compare) {
     this.heap = [];
-    this.compareFn = compareFn;
+    this.compare = (a, b) => Math.sign(compare(a, b));
   }
 
   getLeftChildIndex(parentIndex) {
     return 2 * parentIndex + 1;
   }
+
   getRightChildIndex(parentIndex) {
-    return 2 * (parentIndex + 1);
-  }
-  getParentIndex(childIndex) {
-    return Math.floor((childIndex - 1) / 2);
+    return 2 * parentIndex + 2;
   }
 
-  getLeftChild(parentIndex) {
-    return this.heap[this.getLeftChildIndex(parentIndex)];
-  }
-  getRightChild(parentIndex) {
-    return this.heap[this.getRightChildIndex(parentIndex)];
-  }
-  getParent(childIndex) {
-    return this.heap[this.getParentIndex(childIndex)];
+  getParentIndex(childIndex) {
+    return Math.floor((childIndex - 1) / 2);
   }
 
   hasLeftChild(parentIndex) {
     return this.getLeftChildIndex(parentIndex) < this.heap.length;
   }
+
   hasRightChild(parentIndex) {
     return this.getRightChildIndex(parentIndex) < this.heap.length;
   }
+
   hasParent(childIndex) {
-    return this.getParentIndex(childIndex) >= 0;
+    return 0 <= this.getParentIndex(childIndex);
   }
 
-  swap(indexOne, indexTwo) {
-    [this.heap[indexOne], this.heap[indexTwo]] = [
-      this.heap[indexTwo],
-      this.heap[indexOne],
-    ];
+  swap(a, b) {
+    [this.heap[a], this.heap[b]] = [this.heap[b], this.heap[a]];
   }
 
-  add(value) {
-    this.heap.push(value);
-    this.bubbleUp();
+  isEmpty() {
+    return this.heap.length === 0;
   }
 
-  peek() {
-    if (this.heap.length === 0) return null;
-    return this.heap[0];
+  top() {
+    return this.heap[0] ?? null;
   }
 
-  poll() {
-    if (this.heap.length === 0) return null;
-    if (this.heap.length === 1) return this.heap.pop();
-
-    const value = this.heap[0];
-
-    this.heap[0] = this.heap.pop();
-    this.bubbleDown();
-
-    return value;
+  push(item) {
+    this.heap.push(item);
+    this.heapifyUp();
   }
 
-  size() {
-    return this.heap.length;
-  }
-
-  bubbleUp() {
-    let curIndex = this.heap.length - 1;
+  heapifyUp() {
+    let cur = this.heap.length - 1;
 
     while (
-      this.hasParent(curIndex) &&
-      !this.pairIsInCorrectOrder(this.getParent(curIndex), this.heap[curIndex])
+      this.hasParent(cur) &&
+      this.compare(this.heap[this.getParentIndex(cur)], this.heap[cur]) > 0
     ) {
-      const nextIndex = this.getParentIndex(curIndex);
-      this.swap(curIndex, nextIndex);
-      curIndex = nextIndex;
+      this.swap(cur, this.getParentIndex(cur));
+      cur = this.getParentIndex(cur);
     }
   }
 
-  bubbleDown() {
-    let curIndex = 0;
-    let nextIndex = null;
+  pop() {
+    if (this.heap.length === 0) {
+      return null;
+    }
+    if (this.heap.length === 1) {
+      return this.heap.pop();
+    }
 
-    while (this.hasLeftChild(curIndex)) {
-      const canSwapWithRight =
-        this.hasRightChild(curIndex) &&
-        !this.pairIsInCorrectOrder(
-          this.getLeftChild(curIndex),
-          this.getRightChild(curIndex)
-        );
+    const result = this.heap[0];
+    this.heap[0] = this.heap.pop();
+    this.heapifyDown();
+    return result;
+  }
 
-      nextIndex = canSwapWithRight
-        ? this.getRightChildIndex(curIndex)
-        : this.getLeftChildIndex(curIndex);
+  heapifyDown() {
+    let cur = 0;
+    let next = null;
 
-      if (this.pairIsInCorrectOrder(this.heap[curIndex], this.heap[nextIndex]))
+    while (this.hasLeftChild(cur)) {
+      const rightChildIsNext =
+        this.hasRightChild(cur) &&
+        this.compare(
+          this.heap[this.getRightChildIndex(cur)],
+          this.heap[this.getLeftChildIndex(cur)]
+        ) <= 0;
+
+      next = rightChildIsNext
+        ? this.getRightChildIndex(cur)
+        : this.getLeftChildIndex(cur);
+
+      if (this.compare(this.heap[cur], this.heap[next]) <= 0) {
         break;
+      }
 
-      this.swap(curIndex, nextIndex);
-      curIndex = nextIndex;
+      this.swap(cur, next);
+      cur = next;
+    }
+  }
+}
+
+function solution(N, edge) {
+  const [indegree, graph] = init(N, edge);
+  const order = [];
+  const minHeap = new PriorityQueue((a, b) => a - b);
+  for (let cur = 1; cur < indegree.length; cur++) {
+    indegree[cur] === 0 && minHeap.push(cur);
+  }
+
+  while (!minHeap.isEmpty()) {
+    const cur = minHeap.pop();
+    order.push(cur);
+
+    for (const next of graph[cur]) {
+      indegree[next] -= 1;
+      indegree[next] === 0 && minHeap.push(next);
     }
   }
 
-  pairIsInCorrectOrder(firstValue, secondValue) {
-    return this.compareFn(firstValue, secondValue) <= 0;
-  }
-
-  toString() {
-    return this.heap;
-  }
+  return order.join(" ");
 }
 
-/* 입력 */
-let fs = require("fs");
-let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+function init(N, edge) {
+  const indegree = Array(N + 1).fill(0);
+  const graph = Array.from(Array(N + 1), () => []);
 
-/* 풀이 */
-const [N, M] = input[0].split(" ").map(Number);
-
-const indegree = Array(N + 1).fill(0);
-const graph = Array.from(Array(N + 1), () => []);
-
-for (let line = 1; line < 1 + M; line++) {
-  const [A, B] = input[line].trim().split(" ").map(Number);
-  graph[A].push(B);
-  indegree[B] += 1;
-}
-
-const minHeap = new Heap((a, b) => a - b);
-let order = "";
-
-indegree.forEach((count, problem) => {
-  const canSolve = problem !== 0 && count === 0;
-  if (canSolve) minHeap.add(problem);
-});
-
-while (minHeap.size() > 0) {
-  const problemA = minHeap.poll();
-  order += `${problemA} `;
-
-  graph[problemA].forEach((problemB) => {
-    indegree[problemB] -= 1;
-    const canSolve = indegree[problemB] === 0;
-    if (canSolve) minHeap.add(problemB);
+  edge.forEach((row) => {
+    const [u, v] = row.split(" ").map(Number);
+    graph[u].push(v);
+    indegree[v] += 1;
   });
+
+  return [indegree, graph];
 }
 
-console.log(order.trim());
+const [N, M] = input.shift().trim().split(" ").map(Number);
+const edge = input;
+console.log(solution(N, edge));
