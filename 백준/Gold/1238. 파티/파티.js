@@ -1,70 +1,144 @@
 const fs = require("fs");
-const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
+const path = process.platform === "linux" ? "/dev/stdin" : "./예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
-const [N, M, party] = input.shift().trim().split(" ").map(Number);
+class PriorityQueue {
+  constructor(compare) {
+    this.heap = [];
+    this.compare = compare;
+  }
+  getLeftChildIndex(parent) {
+    return 2 * parent + 1;
+  }
+  getRightChildIndex(parent) {
+    return 2 * parent + 2;
+  }
+  getParentIndex(child) {
+    return Math.floor((child - 1) / 2);
+  }
+  hasLeftChild(parent) {
+    return this.getLeftChildIndex(parent) < this.heap.length;
+  }
+  hasRightChild(parent) {
+    return this.getRightChildIndex(parent) < this.heap.length;
+  }
+  hasParent(child) {
+    return 0 <= this.getParentIndex(child);
+  }
+  swap(a, b) {
+    [this.heap[a], this.heap[b]] = [this.heap[b], this.heap[a]];
+  }
+  top() {
+    return this.heap[0] ?? null;
+  }
+  pop() {
+    if (this.isEmpty()) {
+      return null;
+    }
+    if (this.size() === 1) {
+      return this.heap.pop();
+    }
+    const value = this.heap[0];
+    this.heap[0] = this.heap.pop();
+    this.heapifyDown();
+    return value;
+  }
+  heapifyDown() {
+    let cur = 0;
+    while (this.hasLeftChild(cur)) {
+      const nextIsRightChild =
+        this.hasRightChild(cur) &&
+        this.compare(
+          this.heap[this.getRightChildIndex(cur)],
+          this.heap[this.getLeftChildIndex(cur)]
+        ) < 0;
+      const next = nextIsRightChild
+        ? this.getRightChildIndex(cur)
+        : this.getLeftChildIndex(cur);
 
-const createGraph = (n) => {
-  return Array.from(Array(n + 1), (_, rowIndex) =>
-    Array(n + 1)
-      .fill(Infinity)
-      .map((col, colIndex) => (rowIndex === colIndex ? 0 : col))
-  );
-};
+      if (this.compare(this.heap[cur], this.heap[next]) <= 0) {
+        break;
+      }
+      this.swap(cur, next);
+      cur = next;
+    }
+  }
+  push(value) {
+    this.heap.push(value);
+    this.heapifyUp();
+  }
+  heapifyUp() {
+    let cur = this.heap.length - 1;
+    while (
+      this.hasParent(cur) &&
+      this.compare(this.heap[cur], this.heap[this.getParentIndex(cur)]) < 0
+    ) {
+      this.swap(cur, this.getParentIndex(cur));
+      cur = this.getParentIndex(cur);
+    }
+  }
+  size() {
+    return this.heap.length;
+  }
+  isEmpty() {
+    return this.size() === 0;
+  }
+}
 
-const graph = createGraph(N);
-const backwardGraph = createGraph(N);
-input.map((line) => {
-  const [townA, townB, distance] = line.trim().split(" ").map(Number);
-  graph[townA][townB] = distance;
-  backwardGraph[townB][townA] = distance;
-});
+function solution(N, X, edge) {
+  const REVERSE = true;
+  const forward = dijkstra(N, X, edge, REVERSE);
+  const backward = dijkstra(N, X, edge);
+  let max = 0;
 
-const dijkstra = (start, graph) => {
-  const distance = [...graph[start]];
-  const visited = Array(N + 1).fill(false);
-  visited[0] = visited[start] = true;
+  // console.log(forward, backward);
 
-  while (true) {
-    let minIndex = -1;
-    for (let vertex = 1; vertex < N + 1; vertex++) {
-      if (visited[vertex]) {
+  for (let index = 1; index < N + 1; index++) {
+    max = Math.max(max, forward[index] + backward[index]);
+  }
+
+  return max;
+}
+
+function dijkstra(N, src, edge, reverse = false) {
+  const TIME = 1;
+  const minHeap = new PriorityQueue((a, b) => a[TIME] - b[TIME]);
+  const graph = Array.from(Array(N + 1), () => []);
+  const distance = Array(N + 1).fill(Infinity);
+
+  distance[src] = 0;
+  edge.forEach((row) => {
+    let [a, b, t] = row.trim().split(" ").map(Number);
+    if (reverse) {
+      [a, b] = [b, a];
+    }
+
+    if (a === src) {
+      distance[b] = t;
+      minHeap.push([b, distance[b]]);
+    }
+
+    graph[a].push([b, t]);
+  });
+
+  while (!minHeap.isEmpty()) {
+    const [cur, curDistance] = minHeap.pop();
+    if (distance[cur] !== curDistance) {
+      continue;
+    }
+
+    for (const [next, time] of graph[cur]) {
+      if (distance[next] <= distance[cur] + time) {
         continue;
       }
 
-      if (minIndex < 0 && !visited[vertex]) {
-        minIndex = vertex;
-        continue;
-      }
-
-      if (distance[vertex] < distance[minIndex]) {
-        minIndex = vertex;
-      }
+      distance[next] = distance[cur] + time;
+      minHeap.push([next, distance[next]]);
     }
-
-    if (minIndex < 0) {
-      break;
-    }
-
-    for (let vertex = 1; vertex < N + 1; vertex++) {
-      distance[vertex] = Math.min(
-        distance[vertex],
-        distance[minIndex] + graph[minIndex][vertex]
-      );
-    }
-    visited[minIndex] = true;
   }
 
   return distance;
-};
+}
 
-const forwardDistance = dijkstra(party, graph);
-const backwardDistance = dijkstra(party, backwardGraph);
-
-console.log(
-  Math.max(
-    ...forwardDistance
-      .map((distance, town) => distance + backwardDistance[town])
-      .slice(1)
-  )
-);
+const [N, M, X] = input.shift().trim().split(" ").map(Number);
+console.log(solution(N, X, input));
