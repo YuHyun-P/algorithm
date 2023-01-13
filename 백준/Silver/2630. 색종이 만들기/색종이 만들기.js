@@ -1,66 +1,38 @@
 const fs = require("fs");
-const input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+const path = process.platform === "linux" ? "/dev/stdin" : "./예제.txt";
+const input = fs.readFileSync(path).toString().trim().split("\n");
 
-const N = Number(input[0].trim());
-const paper = (() => {
-  const temp = [];
-  for (let line = 1; line < 1 + N; line++) {
-    const row = input[line].trim().split(" ").map(Number);
-    temp.push(row);
-  }
-  return temp;
-})();
-const visited = (() => {
-  const visited = Array.from(Array(N), () => Array(N).fill(false));
+function solution(N, board) {
+  const count = [0, 0];
+  const check = (startRow, startCol, length) => {
+    for (let row = 0; row < length; row++) {
+      for (let col = 0; col < length; col++) {
+        if (
+          board[startRow][startCol] !== board[startRow + row][startCol + col]
+        ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+  const traverse = (startRow, startCol, length) => {
+    if (length === 1 || check(startRow, startCol, length)) {
+      count[board[startRow][startCol]] += 1;
+      return;
+    }
 
-  const visit = ([startRow, startCol], length) => {
-    for (let row = startRow; row < startRow + length; row++) {
-      for (let col = startCol; col < startCol + length; col++) {
-        visited[row][col] = true;
+    for (let row = 0; row < length; row += length / 2) {
+      for (let col = 0; col < length; col += length / 2) {
+        traverse(startRow + row, startCol + col, length / 2);
       }
     }
   };
 
-  const at = ([row, col]) => visited[row][col];
-
-  return { visit, at };
-})();
-
-const getStartArray = (length, N) => {
-  const startArray = [];
-  for (let row = 0; row < N; row += length) {
-    for (let col = 0; col < N; col += length) {
-      startArray.push([row, col]);
-    }
-  }
-  return startArray;
-};
-
-const isSquare = ([r, c], length, paper) => {
-  let startColor = paper[r][c];
-  for (let row = r; row < r + length; row++) {
-    for (let col = c; col < c + length; col++) {
-      if (paper[row][col] !== startColor) {
-        return false;
-      }
-    }
-  }
-  return true;
-};
-
-const colorCount = [0, 0];
-for (let length = N; length >= 1; length /= 2) {
-  const startArray = getStartArray(length, N);
-  startArray.forEach(([startR, startC]) => {
-    if (visited.at([startR, startC])) {
-      return;
-    }
-
-    if (isSquare([startR, startC], length, paper)) {
-      const startColor = paper[startR][startC];
-      colorCount[startColor] += 1;
-      visited.visit([startR, startC], length);
-    }
-  });
+  traverse(0, 0, N);
+  return count.join("\n");
 }
-console.log(colorCount.join("\n"));
+
+const N = Number(input.shift().trim());
+const board = input.map((row) => row.trim().split(" ").map(Number));
+console.log(solution(N, board));
