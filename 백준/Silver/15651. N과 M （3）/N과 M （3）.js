@@ -4,18 +4,20 @@ const input = fs.readFileSync(path).toString().trim().split("\n");
 
 function solution([N, M]) {
   const answer = [];
-  for (let iter = 0; iter < N ** M; iter++) {
-    let cur = iter;
-    let permutationRepetition = "";
-
-    for (let division = 0; division < M; division++) {
-      permutationRepetition =
-        `${Math.floor(cur % N) + 1} ` + permutationRepetition;
-      cur /= N;
+  const backtracking = (path, level) => {
+    if (level === M) {
+      answer.push(path.join(" "));
+      return;
     }
 
-    answer.push(permutationRepetition);
-  }
+    for (let i = 1; i < N + 1; i++) {
+      path.push(i);
+      backtracking(path, level + 1);
+      path.pop();
+    }
+  };
+
+  backtracking([], 0);
   return answer.join("\n");
 }
 
