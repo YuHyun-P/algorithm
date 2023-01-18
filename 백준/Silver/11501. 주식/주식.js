@@ -3,44 +3,29 @@ const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
 function solution(T, query) {
-  const answer = [];
+  let answer = "";
   const calcMaxProfit = (N, price) => {
-    let buy = 0;
-    let sell = 0;
-    let stock = 0;
+    let profit = 0;
+    let maxPrice = price[N - 1];
 
-    const maxPrice = [...price];
     for (let i = N - 1 - 1; 0 <= i; i--) {
-      if (maxPrice[i] < maxPrice[i + 1]) {
-        maxPrice[i] = maxPrice[i + 1];
+      if (price[i] > maxPrice) {
+        maxPrice = price[i];
       }
+      profit += maxPrice - price[i];
     }
 
-    for (let i = 0; i < N; i++) {
-      if (price[i] < maxPrice[i]) {
-        buy += price[i];
-        stock += 1;
-      }
-
-      if (stock && price[i] === maxPrice[i]) {
-        sell += price[i] * stock;
-        stock = 0;
-      }
-    }
-
-    return sell - buy;
+    return profit;
   };
 
   for (let t = 0; t < T; t++) {
-    answer.push(
-      calcMaxProfit(
-        Number(query[t * 2].trim()),
-        query[t * 2 + 1].trim().split(" ").map(Number)
-      )
-    );
+    answer += `${calcMaxProfit(
+      Number(query[t * 2].trim()),
+      query[t * 2 + 1].trim().split(" ").map(Number)
+    )}\n`;
   }
 
-  return answer.join("\n");
+  return answer.trim();
 }
 
 const T = Number(input.shift().trim());
