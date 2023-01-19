@@ -3,23 +3,18 @@ const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
 function solution(M, N, multiverse) {
-  const SIZE = 0;
-  const INDEX = 1;
-  const parent = Array.from(Array(M), (_, i) => i);
-  const sorted = multiverse.map((row) =>
-    row
-      .trim()
-      .split(" ")
-      .map((char, index) => [Number(char), index])
-      .sort((a, b) => a[SIZE] - b[SIZE])
-  );
-  let pair = 0;
+  const compress = (universe) => [...new Set(universe)].sort((a, b) => a - b);
+  const binarySearch = (universe, target) => {
+    let left = 0;
+    let right = universe.length;
 
-  const upperBound = (left, right, universe, target) => {
     while (left < right) {
-      const mid = Math.floor((left + right + 1) / 2);
-      if (universe[mid][SIZE] <= target) {
-        left = mid;
+      const mid = Math.floor((left + right) / 2);
+      if (universe[mid] === target) {
+        return mid;
+      }
+      if (universe[mid] < target) {
+        left = mid + 1;
       } else {
         right = mid - 1;
       }
@@ -27,27 +22,18 @@ function solution(M, N, multiverse) {
 
     return left;
   };
+
+  const compressed = multiverse.map((row) => {
+    const universe = row.trim().split(" ").map(Number);
+    const unique = compress(universe);
+    return universe.map((size) => binarySearch(unique, size));
+  });
+  let pair = 0;
+
   const isSame = (universeA, universeB) => {
-    let cur = 0;
-    while (cur < N) {
-      if (universeA[cur][INDEX] !== universeB[cur][INDEX]) {
+    for (let i = 0; i < N; i++) {
+      if (universeA[i] !== universeB[i]) {
         return false;
-      }
-
-      if (
-        universeA[cur + 1] &&
-        universeA[cur][SIZE] === universeA[cur + 1][SIZE]
-      ) {
-        const nextA = upperBound(cur, N, universeA, universeA[cur][SIZE]);
-        const nextB = upperBound(cur, N, universeB, universeB[cur][SIZE]);
-
-        if (nextA !== nextB) {
-          return false;
-        }
-
-        cur = nextA + 1;
-      } else {
-        cur += 1;
       }
     }
 
@@ -56,17 +42,9 @@ function solution(M, N, multiverse) {
 
   for (let i = 0; i < M; i++) {
     for (let j = i + 1; j < M; j++) {
-      if (parent[i] === parent[j]) {
+      if (isSame(compressed[i], compressed[j])) {
         pair += 1;
-        continue;
       }
-
-      if (parent[i] !== i || parent[j] !== j || !isSame(sorted[i], sorted[j])) {
-        continue;
-      }
-
-      pair += 1;
-      parent[j] = parent[i];
     }
   }
 
@@ -75,3 +53,5 @@ function solution(M, N, multiverse) {
 
 const [M, N] = input.shift().trim().split(" ").map(Number);
 console.log(solution(M, N, input));
+
+// reference https://github.com/encrypted-def/basic-algo-lecture/blob/master/0x13/solutions/18869.cpp
