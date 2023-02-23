@@ -5,20 +5,27 @@ const input = fs.readFileSync(path).toString().trim().split("\n");
 function solution(N, query) {
   const X = 0;
   const Y = 1;
-  const lines = [];
+  let total = 0;
+  let lastY = 0;
 
   query.sort((a, b) => a[X] - b[X] || a[Y] - b[Y]);
-  lines.push(query[0]);
+  total += query[0][Y] - query[0][X];
+  lastY = query[0][Y];
 
   for (let index = 1; index < N; index++) {
-    const [lastX, lastY] = lines.at(-1);
     const [curX, curY] = query[index];
 
-    if (curX <= lastY && curY > lastY) lines.at(-1)[Y] = curY;
-    if (curX > lastY) lines.push([curX, curY]);
+    if (curX <= lastY) {
+      total += Math.max(0, curY - lastY);
+      lastY = Math.max(lastY, curY);
+      continue;
+    }
+
+    total += curY - curX;
+    lastY = curY;
   }
 
-  return lines.reduce((acc, cur) => acc + cur[Y] - cur[X], 0);
+  return total;
 }
 
 let cursor = 0;
