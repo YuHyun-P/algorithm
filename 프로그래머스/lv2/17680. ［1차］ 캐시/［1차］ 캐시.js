@@ -15,7 +15,6 @@ function solution(cacheSize, cities) {
             const isHit = cache.remove(city);
         
             if (isHit) {
-                cache.remove(city);
                 cache.addLast(city);
                 result += HIT;
                 return;
