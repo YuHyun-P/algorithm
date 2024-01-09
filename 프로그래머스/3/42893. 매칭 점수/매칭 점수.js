@@ -34,28 +34,5 @@ function extractExternalLinkArray(page) {
 }
 
 function countWord(word, page) {
-    const lowerWord = word.toLowerCase();
-    const alphabetRegex = /[a-z]{1}/i;
-    
-    const bodyContent = extractBodyContent(page).toLowerCase();
-    const bodyContentOnlyEng = filterLinkTag(bodyContent).replaceAll(/[^a-z]/g, ' ');
-
-    return bodyContentOnlyEng.split(/\s/).filter((curWord) => curWord === lowerWord).length;
-}
-
-function extractBodyContent(page) {
-    const BODY_START_TAG = "<body>";
-    const BODY_END_TAG = "</body>";
-    
-    const bodyStartTagIndex = page.indexOf(BODY_START_TAG);
-    const bodyEndTagIndex = page.indexOf(BODY_END_TAG);
-    
-    return page.substring(bodyStartTagIndex + BODY_START_TAG.length, bodyEndTagIndex);
-}
-
-function filterLinkTag(page) {
-    const LINK_START_TAG_REGEX = /<a href=\"\S+">/g;
-    const LINK_END_TAG = "</a>";
-    
-    return page.replaceAll(LINK_START_TAG_REGEX, " ").replaceAll(LINK_END_TAG, " ");
+    return page.replaceAll(/[^a-z]/gi, ' ').split(' ').filter((curWord) => curWord.toLowerCase() === word.toLowerCase()).length;
 }
