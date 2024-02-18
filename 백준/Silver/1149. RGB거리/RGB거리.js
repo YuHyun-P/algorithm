@@ -2,17 +2,26 @@ const fs = require("fs");
 const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
-function solution(N, house) {
-  const dp = house.map((rgb) => [...rgb]);
-  for (let index = 1; index < N; index++) {
-    dp[index][0] += Math.min(dp[index - 1][1], dp[index - 1][2]);
-    dp[index][1] += Math.min(dp[index - 1][0], dp[index - 1][2]);
-    dp[index][2] += Math.min(dp[index - 1][0], dp[index - 1][1]);
+function solution(N, costs) {
+  const RED = 0;
+  const GREEN = 1;
+  const BLUE = 2;
+
+  const dp = costs.map((houses) => [...houses]);
+
+  for (let house = 1; house < N; house += 1) {
+    dp[house][RED] += Math.min(dp[house - 1][GREEN], dp[house - 1][BLUE]);
+    dp[house][GREEN] += Math.min(dp[house - 1][RED], dp[house - 1][BLUE]);
+    dp[house][BLUE] += Math.min(dp[house - 1][RED], dp[house - 1][GREEN]);
   }
 
-  return Math.min(dp[N - 1][0], dp[N - 1][1], dp[N - 1][2]);
+  return Math.min(...dp.at(-1));
 }
 
-const N = Number(input.shift().trim());
-const house = input.map((row) => row.trim().split(" ").map(Number));
-console.log(solution(N, house));
+const N = Number(input.splice(0, 1));
+console.log(
+  solution(
+    N,
+    input.map((line) => line.split(" ").map(Number))
+  )
+);
