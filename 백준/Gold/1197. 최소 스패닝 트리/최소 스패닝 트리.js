@@ -2,57 +2,45 @@ const fs = require("fs");
 const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
 const input = fs.readFileSync(path).toString().trim().split("\n");
 
-class UnionFind {
-  constructor(vertexList) {
-    this.parent = [...vertexList];
-  }
+function solution(V, E, edges) {
+  const WEIGHT = 2;
 
-  find(vertex) {
-    return this.parent[vertex] === vertex
-      ? vertex
-      : (this.parent[vertex] = this.find(this.parent[vertex]));
-  }
+  const ascendingEdges = [...edges];
+  ascendingEdges.sort((edgeA, edgeB) => edgeA[WEIGHT] - edgeB[WEIGHT]);
 
-  union(vertexA, vertexB) {
-    const parentA = this.find(vertexA);
-    const parentB = this.find(vertexB);
-    if (parentA === parentB) {
+  const { find, union } = unionFind(V + 1);
+
+  let result = 0;
+  ascendingEdges.forEach(([nodeA, nodeB, weight]) => {
+    if (find(nodeA) === find(nodeB)) {
       return;
     }
 
-    this.parent[parentB] = parentA;
-  }
-
-  inSameSet(vertexA, vertexB) {
-    const parentA = this.find(vertexA);
-    const parentB = this.find(vertexB);
-    return parentA === parentB;
-  }
+    result += weight;
+    union(nodeA, nodeB);
+  });
+  return result;
 }
 
-function solution(V, E, edge) {
-  const unionFind = new UnionFind(
-    Array.from(Array(V + 1), (_, index) => index)
-  );
+function unionFind(n) {
+  const parent = Array.from(Array(n), (_, i) => i);
 
-  edge.sort((edgeA, edgeB) => edgeB[2] - edgeA[2]);
-  let mst = 0;
-  for (let count = 0; count < V; count++) {
-    while (edge.length) {
-      const [u, v, min] = edge.pop();
-      if (unionFind.inSameSet(u, v)) {
-        continue;
-      }
+  const find = (index) => {
+    return parent[index] === index ? index : (parent[index] = find(parent[index]));
+  };
 
-      unionFind.union(u, v);
-      mst += min;
-      break;
-    }
-  }
+  const union = (indexA, indexB) => {
+    parent[find(indexA)] = find(indexB);
+  };
 
-  return mst;
+  return { find, union };
 }
 
-const [V, E] = input.shift().trim().split(" ").map(Number);
-const edge = input.map((row) => row.trim().split(" ").map(Number));
-console.log(solution(V, E, edge));
+const [V, E] = input.shift(0, 1).split(" ").map(Number);
+console.log(
+  solution(
+    V,
+    E,
+    input.map((line) => line.split(" ").map(Number))
+  )
+);
