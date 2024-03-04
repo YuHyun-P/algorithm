@@ -1,30 +1,31 @@
-const fs = require("fs");
-const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
-const input = fs.readFileSync(path).toString().trim().split("\n");
+const fs = require('fs');
+const path = process.platform === 'linux' ? '/dev/stdin' : '예제.txt';
+const input = fs.readFileSync(path).toString().trim().split('\n');
 
-function solution(A, B) {
-  const A_LENGTH = A.length;
-  const B_LENGTH = B.length;
+function solution(stringA, stringB) {
+  const lengthA = stringA.length;
+  const lengthB = stringB.length;
 
-  const dp = Array.from(Array(A_LENGTH), () => Array(B_LENGTH).fill(0));
-  const outOfBound = (a, b) => a < 0 || b < 0 || A_LENGTH <= a || B_LENGTH <= b;
-  const safetyGet = (a, b) => (outOfBound(a, b) ? 0 : dp[a][b]);
-  for (let a = 0; a < A_LENGTH; a++) {
-    const curA = A[a];
+  const dp = Array.from(Array(lengthA), () => Array(lengthB).fill(0));
+  for (let indexA = 0; indexA < lengthA; indexA += 1) {
+    const charA = stringA[indexA];
+    for (let indexB = 0; indexB < lengthB; indexB += 1) {
+      const charB = stringB[indexB];
 
-    for (let b = 0; b < B_LENGTH; b++) {
-      const curB = B[b];
-      dp[a][b] = Math.max(
-        safetyGet(a - 1, b),
-        safetyGet(a, b - 1),
-        safetyGet(a - 1, b - 1) + (curA === curB ? 1 : 0)
+      if (charA === charB) {
+        dp[indexA][indexB] = (dp?.[indexA - 1]?.[indexB - 1] ?? 0) + 1;
+      }
+
+      dp[indexA][indexB] = Math.max(
+        dp[indexA][indexB],
+        dp?.[indexA - 1]?.[indexB] ?? 0,
+        dp[indexA]?.[indexB - 1] ?? 0
       );
     }
   }
 
-  return dp[A_LENGTH - 1][B_LENGTH - 1];
+  return dp[lengthA - 1][lengthB - 1];
 }
 
-const A = input[0].trim();
-const B = input[1].trim();
-console.log(solution(A, B));
+const [stringA, stringB] = input;
+console.log(solution(stringA, stringB));
