@@ -1,45 +1,45 @@
-const fs = require("fs");
-const path = process.platform === "linux" ? "/dev/stdin" : "예제.txt";
-const input = fs.readFileSync(path).toString().trim().split(" ");
+const fs = require('fs');
+const path = process.platform === 'linux' ? '/dev/stdin' : '예제.txt';
+const input = fs.readFileSync(path).toString().trim().split(' ');
 
 function solution(N) {
-  const prime = getPrimeList(N);
-  let start = 0;
-  let end = -1;
-  let count = 0;
-  let subTotal = 0;
+  const primeNumbers = getPrimeNumbers(N);
+  let result = 0;
 
-  while (end < prime.length && start < prime.length) {
-    const diff = Math.sign(subTotal - N);
-    switch (diff) {
-      case 1:
-        subTotal -= prime[start++];
-        break;
-      case 0:
-        count += 1;
-        subTotal -= prime[start++];
-        break;
-      case -1:
-        subTotal += prime[++end];
-        break;
+  let end = 0;
+  let acc = 0;
+  const { length } = primeNumbers;
+  for (const primeNumber of primeNumbers) {
+    while (end < length && acc < N) {
+      acc += primeNumbers[end++];
     }
+
+    if (acc === N) {
+      result += 1;
+    }
+
+    acc -= primeNumber;
   }
 
-  return count;
-}
+  return result;
 
-function getPrimeList(N) {
-  const prime = [];
-  const visited = Array(N + 1).fill(false);
-  for (let i = 2; i <= N; i++) {
-    if (!visited[i]) {
-      prime.push(i);
+  function getPrimeNumbers(N) {
+    const result = [];
+    const isPrimeNumber = Array(N + 1).fill(true);
+    isPrimeNumber[0] = isPrimeNumber[1] = false;
+    for (let i = 2; i < N + 1; i += 1) {
+      if (isPrimeNumber[i]) {
+        result.push(i);
+      }
+
+      for (let next = i * i; next < N + 1; next += i) {
+        isPrimeNumber[next] = false;
+      }
     }
-    for (let j = i; i * j <= N; j++) {
-      visited[i * j] = true;
-    }
+
+    return result;
   }
-  return prime;
 }
 
-console.log(solution(Number(input[0])));
+const N = Number(input[0]);
+console.log(solution(N));
