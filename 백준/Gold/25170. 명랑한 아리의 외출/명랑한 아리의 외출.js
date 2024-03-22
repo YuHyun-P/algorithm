@@ -9,14 +9,10 @@ function solution(N, M, T, nJobBoard, timeBoard) {
     [1, 1],
   ];
   const MOVEMENT_TIME = 1;
-  const [NOT_WORK, WORK] = [0, 1];
 
-  const dp = Array.from(Array(N), () =>
-    Array.from(Array(M), () => Array.from(Array(T + 1), () => Array(2).fill(null)))
-  );
+  const dp = Array.from(Array(N), () => Array.from(Array(M), () => Array(T + 1).fill(null)));
 
-  dp[0][0][T][NOT_WORK] = 0;
-  dp[0][0][T][WORK] = 0;
+  dp[0][0][T] = 0;
 
   for (let row = 0; row < N; row += 1) {
     for (let col = 0; col < M; col += 1) {
@@ -24,9 +20,14 @@ function solution(N, M, T, nJobBoard, timeBoard) {
       const execTime = timeBoard[row][col];
 
       for (let time = execTime; time < T + 1; time += 1) {
-        if (dp[row][col][time][NOT_WORK] !== null) {
-          dp[row][col][time - execTime][WORK] = dp[row][col][time][NOT_WORK] + nJob;
+        if (dp[row][col][time] === null) {
+          continue;
         }
+
+        dp[row][col][time - execTime] = Math.max(
+          dp[row][col][time - execTime] ?? 0,
+          dp[row][col][time] + nJob
+        );
       }
 
       for (const [dr, dc] of DIRECTIONS) {
@@ -36,25 +37,22 @@ function solution(N, M, T, nJobBoard, timeBoard) {
           continue;
         }
 
-        for (let time = 0; time < T + 1; time += 1) {
-          const [prevNotWork, prevWork] = dp[row][col][time];
-          if (time - MOVEMENT_TIME < 0) {
+        for (let time = MOVEMENT_TIME; time < T + 1; time += 1) {
+          const maxNJob = dp[row][col][time];
+          if (maxNJob === null) {
             continue;
           }
 
-          if (prevNotWork !== null || prevWork !== null) {
-            dp[nr][nc][time - MOVEMENT_TIME][NOT_WORK] = Math.max(
-              dp[nr][nc][time - MOVEMENT_TIME][NOT_WORK] ?? 0,
-              prevNotWork ?? 0,
-              prevWork ?? 0
-            );
-          }
+          dp[nr][nc][time - MOVEMENT_TIME] = Math.max(
+            dp[nr][nc][time - MOVEMENT_TIME] ?? 0,
+            maxNJob
+          );
         }
       }
     }
   }
 
-  return Math.max(...dp[N - 1][M - 1].flat());
+  return Math.max(...dp[N - 1][M - 1]);
 }
 
 const [N, M, T] = input.shift().split(' ').map(Number);
